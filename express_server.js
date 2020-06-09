@@ -10,6 +10,10 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 }
 
+app.post("/urls", (req, res) => {
+  console.log(req.body);  // Log the POST request body to the console
+  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+});
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
@@ -44,3 +48,14 @@ app.listen(port, () => {
   console.log(`Example app listening on port: ${port}!`);
   
 });
+
+
+function generateRandomString() {
+    var result           = '';
+    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < 6; i++ ) {
+       result += characters[Math.floor(Math.random() * charactersLength)];
+    }
+    return result;
+}
