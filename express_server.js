@@ -10,11 +10,6 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-app.post("/urls", (req, res) => {
-  const shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;
-  res.redirect(`/urls/${shortURL}`);
-});
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
@@ -46,6 +41,19 @@ app.get('/u/:shortURL', (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
+
+app.post("/urls", (req, res) => {
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = req.body.longURL;
+  res.redirect(`/urls/${shortURL}`);
+});
+
+app.post('/urls/:shortURL/delete', (req, res) => {
+  const shortURL = req.params.shortURL;
+  delete urlDatabase[shortURL];
+  res.redirect('/urls');
+})
+
 
 app.listen(port, () => {
   console.log(`Example app listening on port: ${port}!`);
