@@ -8,6 +8,18 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine', 'ejs');
 
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -16,7 +28,7 @@ const urlDatabase = {
 
 app.get('/register', (req, res) => {
   const templateVars = {
-    username: req.cookies['username']
+    user: users[req.cookies.user_id]
   };
   res.render('regestrationForm', templateVars);
 });
@@ -31,8 +43,9 @@ app.get("/urls/new", (req, res) => {
 app.get('/urls', (req, res) => {
   let templateVars = {
     urls: urlDatabase,
-    username: req.cookies["username"]
+    user: users[req.cookies.user_id]
   };
+
   res.render("urls_index", templateVars);
 });
 
@@ -52,7 +65,7 @@ app.get('/urls/:shortURL', (req, res) => {
   let templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies["username"]
+    user: users[req.cookies.user_id]
   };
   res.render("urls_show", templateVars);
 });
@@ -62,13 +75,34 @@ app.get('/u/:shortURL', (req, res) => {
   res.redirect(longURL);
 });
 
+app.post('/register',(req, res) => {
+  const emailExists = checkIfEmailExists(res, req);
+  if(emailExists){
+    return emailExists;
+  }
+  if(!req.body.email){
+    return res.status(400).send('must provide a valid email and or password');
+  } else if(!req.body.password){
+    return res.status(400).send('must provide a valid email and or password');
+  }
+  const userID = generateRandomString();
+  const newUser = {
+    id: userID,
+    email: req.body.email,
+    password: req.body.password
+  }
+  users[newUser.id] = newUser;
+  res.cookie("user_id", newUser.id);
+  res.redirect("/urls")
+});
+
 app.post("/login", (req, res) => {
   res.cookie("username", req.body.username);
   res.redirect("/urls");
 });
 
 app.post('/logout',(req, res) => {
-  res.clearCookie('username');
+  res.clearCookie('user_id');
   res.redirect('/urls');
 });
 
@@ -105,3 +139,14 @@ const generateRandomString = () => {
   }
   return result;
 };
+
+
+const checkIfEmailExists = (res, req) => {
+  for(const user in users){
+  console.log(user);
+  if(users[user].email === req.body.email){
+    console.log("in here");
+    return res.status(400).send('A user with that email already exists');
+  }
+}
+}
