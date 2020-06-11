@@ -26,6 +26,19 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+app.get('/login', (req, res) => {
+  const templateVars = {
+    user: users[req.cookies.user_id]
+  };
+  res.render('_login', templateVars);
+})
+app.get('/about', (req, res) => {
+  const templateVars = {
+    user: users[req.cookies.user_id]
+  };
+  res.render('about_page', templateVars);
+})
+
 app.get('/register', (req, res) => {
   const templateVars = {
     user: users[req.cookies.user_id]
@@ -35,7 +48,7 @@ app.get('/register', (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"]
+    user: users[req.cookies.user_id]
   };
   res.render("urls_new", templateVars);
 });
@@ -76,14 +89,14 @@ app.get('/u/:shortURL', (req, res) => {
 });
 
 app.post('/register',(req, res) => {
-  const emailExists = checkIfEmailExists(res, req);
-  if(emailExists){
-    return emailExists;
-  }
   if(!req.body.email){
     return res.status(400).send('must provide a valid email and or password');
   } else if(!req.body.password){
     return res.status(400).send('must provide a valid email and or password');
+  }
+  const emailStatus = checkIfEmailExists(req.body.email);
+  if(emailStatus){
+    return res.status(400).send('email already exists');
   }
   const userID = generateRandomString();
   const newUser = {
@@ -97,7 +110,18 @@ app.post('/register',(req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
+  const email = req.body.email;
+  const password = req.body.password;
+  const userID = checkIfEmailExists(email);
+  
+  if(!userID){
+    return res.status(403).send('must provide a valid email and or password');
+  }
+
+  if(users[userID].password !== password){
+    return res.status(403).send('must provide a valid email and or password');
+  }
+  res.cookie("user_id", userID);
   res.redirect("/urls");
 });
 
@@ -141,12 +165,11 @@ const generateRandomString = () => {
 };
 
 
-const checkIfEmailExists = (res, req) => {
-  for(const user in users){
-  console.log(user);
-  if(users[user].email === req.body.email){
-    console.log("in here");
-    return res.status(400).send('A user with that email already exists');
+const checkIfEmailExists = (email) => {
+  for(const userId in users){
+    if(email === users[userId].email){
+      return userId
+    }
   }
-}
+  return false;
 }
