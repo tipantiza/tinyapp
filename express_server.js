@@ -57,13 +57,17 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get('/urls', (req, res) => {
+  console.log(urlDatabase);
+  const filteredDatabase = urlsForUser(req.cookies['user_id'])
   let templateVars = {
-    urls: urlDatabase,
+    urls: filteredDatabase,
     user: users[req.cookies.user_id]
   };
-
+  console.log(filteredDatabase);
   res.render("urls_index", templateVars);
+  
 });
+ 
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
@@ -78,12 +82,16 @@ app.get("/", (req, res) => {
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  let templateVars = {
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL,
-    user: users[req.cookies.user_id]
-  };
-  res.render("urls_show", templateVars);
+
+  if(req.cookies['user_id'] === urlDatabase[req.params.shortURL].userID){
+    let templateVars = {
+      shortURL: req.params.shortURL,
+      longURL: urlDatabase[req.params.shortURL].longURL,
+      user: users[req.cookies.user_id]
+    };
+    return res.render("urls_show", templateVars);
+  }
+   res.redirect('/urls')
 });
 
 app.get('/u/:shortURL', (req, res) => {
@@ -140,14 +148,19 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-  urlDatabase[req.params.id].longURL = req.body.longURL
-  console.log(urlDatabase);
-  res.redirect("/urls");
+  if(req.cookies['user_id'] === urlDatabase[req.params.id].userID){
+    urlDatabase[req.params.id].longURL = req.body.longURL
+    console.log(urlDatabase);
+    return res.redirect("/urls");
+  }
+  res.redirect('/urls')
 });
  
 app.post('/urls/:shortURL/delete', (req, res) => {
-  const shortURL = req.params.shortURL;
-  delete urlDatabase[shortURL];
+  if (req.cookies['user_id'] === urlDatabase[req.params.shortURL].userID){
+    const shortURL = req.params.shortURL;
+    delete urlDatabase[shortURL];
+  }
   res.redirect('/urls');
 });
 
@@ -176,4 +189,16 @@ const checkIfEmailExists = (email) => {
     }
   }
   return false;
+}
+
+const urlsForUser = (id) => {
+  const tempDatabase = {
+
+  }
+  for (const url in urlDatabase){
+    if(urlDatabase[url].userID === id){
+      tempDatabase[url] = urlDatabase[url];
+    }
+  }
+  return tempDatabase;
 }
