@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
-const {getsIdByEmail, urlsForUser, generateRandomString} = require('./helpers')
+const { getsIdByEmail, urlsForUser, generateRandomString } = require('./helpers')
 const app = express();
 const port = 8080;
 const saltRounds = 10;
@@ -86,11 +86,14 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  if (req.session["user_id"] && users[req.session["user_id"]]) {
+    return res.redirect('/urls')
+  }
+  res.redirect("/login");
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-
+if(urlDatabase[req.params.shortURL]){
   if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
     let templateVars = {
       shortURL: req.params.shortURL,
@@ -99,7 +102,8 @@ app.get('/urls/:shortURL', (req, res) => {
     };
     return res.render("urls_show", templateVars);
   }
-  res.redirect('/urls');
+}
+  res.redirect('/urls')
 });
 
 app.get('/u/:shortURL', (req, res) => {

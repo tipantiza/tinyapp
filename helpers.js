@@ -5,17 +5,16 @@ const getsIdByEmail = (email, database) => {
       return userId;
     }
   }
-  return false;
 };
 
 //returns in an object all urls that the user created
-const urlsForUser = (id, database) => {
+const urlsForUser = (id, urlDatabase) => {
   const tempDatabase = {
 
   };
-  for (const url in database) {
-    if (database[url].userID === id) {
-      tempDatabase[url] = database[url];
+  for (const url in urlDatabase) {
+    if (urlDatabase[url].userID === id) {
+      tempDatabase[url] = urlDatabase[url];
     }
   }
   return tempDatabase;
