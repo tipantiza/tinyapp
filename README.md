@@ -4,8 +4,9 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
-!["screenshot description"](#)
-!["screenshot description"](#)
+!["Create shortened urls"](https://github.com/tipantiza/tinyapp/blob/master/docs/urls-new-page.png?raw=true)
+!["Please login or register"](https://github.com/tipantiza/tinyapp/blob/master/docs/urls-not-logged-in.png?raw=true)
+!["home-page when user is logged in"](https://github.com/tipantiza/tinyapp/blob/master/docs/urls-page.png?raw=true)
 
 ## Dependencies
 
