@@ -93,22 +93,42 @@ app.get("/", (req, res) => {
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-if(urlDatabase[req.params.shortURL]){
-  if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
-    let templateVars = {
-      shortURL: req.params.shortURL,
-      longURL: urlDatabase[req.params.shortURL].longURL,
-      user: users[req.session.user_id]
-    };
-    return res.render("urls_show", templateVars);
+  let isValidUrl = false;
+  let isCorrectUser = false;
+  let isLoggedIn = false;
+  let longURL
+  
+  if(urlDatabase[req.params.shortURL]){
+    isValidUrl = true;
+    if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
+      isCorrectUser = true;
+    }
+    if(req.session.user_id){
+      isLoggedIn = true;
+    }
+    longURL = urlDatabase[req.params.shortURL].longURL
   }
-}
-  res.redirect('/urls')
+  let templateVars = {
+    isValidUrl: isValidUrl,
+    isLoggedIn: isLoggedIn,
+    isCorrectUser: isCorrectUser,
+    shortURL: req.params.shortURL,
+    longURL: longURL,
+    user: users[req.session.user_id]
+  };
+  res.render("urls_show", templateVars);
 });
+  
+
 
 app.get('/u/:shortURL', (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL].longURL;
-  res.redirect(longURL);
+  if(urlDatabase[req.params.shortURL]){
+    const longURL = urlDatabase[req.params.shortURL].longURL;
+    return res.redirect(longURL);
+  }
+  else {
+    res.send('that url doesnt exist please go back to your <a href="/urls">urls</a>')
+  }
 });
 
 app.post('/register',(req, res) => {
