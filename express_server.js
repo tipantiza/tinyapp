@@ -2,14 +2,13 @@ const express = require('express');
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
-const { getsIdByEmail, urlsForUser, generateRandomString } = require('./helpers')
+const { getsIdByEmail, urlsForUser, generateRandomString } = require('./helpers');
 const app = express();
 const port = 8080;
 const saltRounds = 10;
-// app.use(cookieParser());
+
 app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine', 'ejs');
-
 app.use(cookieSession({
   name: 'session',
   keys: [
@@ -36,9 +35,12 @@ const urlDatabase = {
   i3BoGr: { longURL: "https://www.google.ca", userID: "user2RandomID" }
 };
 
+
+
 app.get('/login', (req, res) => {
-  if(req.session.user_id){
-   return res.redirect('/urls')
+  
+  if (req.session["user_id"] && users[req.session["user_id"]]) {
+    return res.redirect('/urls');
   }
   const templateVars = {
     user: users[req.session.user_id]
@@ -54,10 +56,15 @@ app.get('/about', (req, res) => {
 });
 
 app.get('/register', (req, res) => {
-  const templateVars = {
-    user: users[req.session.user_id]
-  };
-  res.render('regestrationForm', templateVars);
+  if (req.session["user_id"] && users[req.session["user_id"]]) {
+    res.redirect('/urls');
+    
+  } else {
+    const templateVars = {
+      user: users[req.session.user_id]
+    };
+    res.render('regestrationForm', templateVars);
+  }
 });
 
 app.get("/urls/new", (req, res) => {
@@ -79,18 +86,10 @@ app.get('/urls', (req, res) => {
   res.render("urls_index", templateVars);
   
 });
- 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World<b><body><html>\n");
-});
 
 app.get("/", (req, res) => {
   if (req.session["user_id"] && users[req.session["user_id"]]) {
-    return res.redirect('/urls')
+    return res.redirect('/urls');
   }
   res.redirect("/login");
 });
@@ -99,18 +98,18 @@ app.get('/urls/:shortURL', (req, res) => {
   let isValidUrl = false;
   let isCorrectUser = false;
   let isLoggedIn = false;
-  let longURL
+  let longURL;
   
-  if(urlDatabase[req.params.shortURL]){
+  if (urlDatabase[req.params.shortURL]) {
     isValidUrl = true;
     if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
       isCorrectUser = true;
     }
-    longURL = urlDatabase[req.params.shortURL].longURL
+    longURL = urlDatabase[req.params.shortURL].longURL;
   }
-        if(req.session.user_id){
-        isLoggedIn = true;
-      }
+  if (req.session.user_id) {
+    isLoggedIn = true;
+  }
   let templateVars = {
     isValidUrl: isValidUrl,
     isLoggedIn: isLoggedIn,
@@ -121,17 +120,17 @@ app.get('/urls/:shortURL', (req, res) => {
   };
   res.render("urls_show", templateVars);
 });
-  
 
 app.get('/u/:shortURL', (req, res) => {
-  if(urlDatabase[req.params.shortURL]){
+  if (urlDatabase[req.params.shortURL]) {
     const longURL = urlDatabase[req.params.shortURL].longURL;
     return res.redirect(longURL);
-  }
-  else {
-    res.status(400).send('that url doesnt exist please go back to your <a href="/urls">urls</a>')
+  } else {
+    res.status(400).send('that url doesnt exist please go back to your <a href="/urls">urls</a>');
   }
 });
+
+
 
 app.post('/register',(req, res) => {
   //making sure given email isnt an empy value
@@ -189,9 +188,8 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-  if (req.session.user_id === urlDatabase[req.params.id].userID) {
+  if (urlDatabase[req.params.id]) {
     urlDatabase[req.params.id].longURL = req.body.longURL;
-    return res.redirect("/urls");
   }
   res.redirect('/urls');
 });
