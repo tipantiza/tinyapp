@@ -22,12 +22,12 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: bcrypt.hashSync("purple-monkey-dinosaur", saltRounds)
   },
   "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: bcrypt.hashSync("dishwasher-funk", saltRounds)
   }
 };
 
@@ -37,6 +37,9 @@ const urlDatabase = {
 };
 
 app.get('/login', (req, res) => {
+  if(req.session.user_id){
+   return res.redirect('/urls')
+  }
   const templateVars = {
     user: users[req.session.user_id]
   };
@@ -103,11 +106,11 @@ app.get('/urls/:shortURL', (req, res) => {
     if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
       isCorrectUser = true;
     }
-    if(req.session.user_id){
-      isLoggedIn = true;
-    }
     longURL = urlDatabase[req.params.shortURL].longURL
   }
+        if(req.session.user_id){
+        isLoggedIn = true;
+      }
   let templateVars = {
     isValidUrl: isValidUrl,
     isLoggedIn: isLoggedIn,
@@ -120,14 +123,13 @@ app.get('/urls/:shortURL', (req, res) => {
 });
   
 
-
 app.get('/u/:shortURL', (req, res) => {
   if(urlDatabase[req.params.shortURL]){
     const longURL = urlDatabase[req.params.shortURL].longURL;
     return res.redirect(longURL);
   }
   else {
-    res.send('that url doesnt exist please go back to your <a href="/urls">urls</a>')
+    res.status(400).send('that url doesnt exist please go back to your <a href="/urls">urls</a>')
   }
 });
 
@@ -163,14 +165,14 @@ app.post("/login", (req, res) => {
   const userID = getsIdByEmail(email, users);
   
   if (!userID) {
-    return res.status(403).send('must provide a valid email and or password');
+    return res.status(403).send('must provide a valid email and or password <a href="/login">to go back</a>');
   }
   bcrypt.compare(password, users[userID].password, function(err, result) {
     if (result) {
       req.session.user_id = userID;
       res.redirect("/urls");
     } else {
-      res.status(403).send('must provide a valid email and or password');
+      res.status(403).send('must provide a valid email and or password <a href="/login"> to go back</a>');
     }
   });
 });
